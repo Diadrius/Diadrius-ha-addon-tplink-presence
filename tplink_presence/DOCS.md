@@ -13,10 +13,9 @@ Polls your TP-Link router's client list and publishes presence to Home Assistant
 | `timeout_seconds` | Per-request timeout towards the router |
 | `verify_ssl` | Check the router's HTTPS certificate (most routers use a self-signed one) |
 | `debug_clients` | Log every client the router reports on each poll, to find a device's MAC. Turn off afterwards: the list contains all your devices |
-| `tracked` | Devices to report: a `name` and the device's Wi-Fi `mac` |
+| `tracked` | Devices to report: a `name`, plus a `mac` and/or a `hostname` (at least one). The MAC is tried first, then the hostname |
 
-Use the address the phone shows under Wi-Fi settings. Phones that use a private Wi-Fi
-address should use a fixed one for your home network, or the MAC will change.
+Find a device's MAC and hostname by turning on `debug_clients` for one poll. A phone with a rotating private Wi-Fi address changes MAC; use a fixed address for your home network, or also set its `hostname`. A match by hostname alone is logged as `matched_by_hostname`, and the tracker's `matched_by` attribute shows which was used.
 
 ## Entities
 

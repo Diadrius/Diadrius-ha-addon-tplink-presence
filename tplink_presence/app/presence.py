@@ -136,7 +136,9 @@ class HomeAssistant:
 class Presence:
     def __init__(self, settings, reader, ha):
         self.settings, self.reader, self.ha = settings, reader, ha
-        self.tracked = [(t["name"], normalize_mac(t["mac"])) for t in settings["tracked"]]
+        # (name, mac, hostname): a device matches on its MAC, else on its hostname
+        self.tracked = [(t["name"], normalize_mac(t.get("mac") or ""), (t.get("hostname") or "").lower()) for t in settings["tracked"]]
+        self.matched_by = {}
         self.failures = 0
         self.polls = 0
         self.last_success = None
@@ -151,23 +153,29 @@ class Presence:
             duration = round((time.monotonic() - started) * 1000)
             log("poll_failed", level="error", kind=error.kind, error=str(error), failures=self.failures, duration_ms=duration)
             self._publish_health(error.kind, duration, str(error))
-            for name, _ in self.tracked:
+            for name, *_ in self.tracked:
                 self._publish_tracker(name, "unknown", {})
             return
         duration = round((time.monotonic() - started) * 1000)
         by_mac = {c["mac"]: c for c in clients}
+        by_hostname = {c["hostname"].lower(): c for c in clients if c["hostname"]}
         if self.settings.get("debug_clients"):
             log("clients", level="debug", clients=clients)
         self.failures = 0
         self.last_success = now()
         states = {}
-        for name, mac in self.tracked:
-            client = by_mac.get(mac)
+        for name, mac, hostname in self.tracked:
+            client, matched = by_mac.get(mac), "mac"
+            if client is None and hostname:
+                client, matched = by_hostname.get(hostname), "hostname"
             home = client is not None and client["active"]
             states[name] = "home" if home else "not_home"
-            attributes = {"source_type": "router", "mac": mac}
+            attributes = {"source_type": "router"}
             if client:
-                attributes.update(ip=client["ip"], hostname=client["hostname"], connection=client["connection"])
+                attributes.update(mac=client["mac"], ip=client["ip"], hostname=client["hostname"], connection=client["connection"], matched_by=matched)
+                if self.matched_by.get(name) != matched and matched == "hostname":
+                    log("matched_by_hostname", level="warning", device=name, mac_seen=client["mac"], hint="the tracked MAC was not found; update it")
+                self.matched_by[name] = matched
             self._publish_tracker(name, states[name], attributes)
         self._publish_health(OK, duration, None, clients_total=len(clients))
         self.polls += 1
@@ -199,7 +207,7 @@ class Presence:
         return min(interval * 2 ** min(self.failures, 5), MAX_BACKOFF)  # gentle on a router that may lock out bad logins
 
     def shutdown(self):
-        for name, _ in self.tracked:
+        for name, *_ in self.tracked:
             self.ha.put_state(tracker_entity(name), "unavailable", {"friendly_name": name})
         self.ha.put_state(HEALTH_ENTITY, "unavailable", {"friendly_name": "TP-Link Presence status"})
 
@@ -210,6 +218,9 @@ def main():
     log("start", router=settings["router_url"], tracked=[t["name"] for t in settings["tracked"]], interval=settings["poll_interval_seconds"])
     if not settings["password"]:
         sys.exit("Set the router password in the add-on options.")
+    for device in settings["tracked"]:
+        if not (device.get("mac") or device.get("hostname")):
+            sys.exit(f"Tracked device {device['name']!r} needs a mac or a hostname.")
     presence = Presence(settings, RouterReader(settings), HomeAssistant(os.environ["SUPERVISOR_TOKEN"]))
     stop = threading.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):

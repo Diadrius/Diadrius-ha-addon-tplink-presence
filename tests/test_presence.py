@@ -75,6 +75,14 @@ class PresenceTest(unittest.TestCase):
         self.assertEqual(presence.classify(Exception("x"), "login"), presence.LOGIN_FAILED)
         self.assertEqual(presence.classify(KeyError("x"), "fetch"), presence.UNEXPECTED)
 
+    def test_hostname_fallback_when_mac_changes(self):
+        settings = {**SETTINGS, "tracked": [{"name": "Test Phone", "mac": "AA:BB:CC:00:11:22", "hostname": "Phone"}]}
+        ha = FakeHA()
+        client = {**phone(), "mac": "0000000000ff"}
+        presence.Presence(settings, FakeReader([client]), ha).poll()
+        state, attributes = ha.states["device_tracker.tplink_test_phone"]
+        self.assertEqual((state, attributes["matched_by"]), ("home", "hostname"))
+
     def test_scrub_hides_password(self):
         self.assertNotIn("hunter2", presence.scrub("failed with hunter2", "hunter2"))
 
