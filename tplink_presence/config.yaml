@@ -1,0 +1,30 @@
+name: TP-Link Presence
+version: "0.1.0"
+slug: tplink_presence
+description: Home/away presence for chosen devices, read from a TP-Link router's client list
+url: https://github.com/Diadrius/Diadrius-ha-addon-tplink-presence
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: application
+boot: auto
+homeassistant_api: true
+options:
+  router_url: "http://192.168.0.1"
+  username: admin
+  password: ""
+  poll_interval_seconds: 300
+  timeout_seconds: 20
+  verify_ssl: false
+  tracked: []
+schema:
+  router_url: str
+  username: str
+  password: password
+  poll_interval_seconds: int(60,3600)
+  timeout_seconds: int(5,60)
+  verify_ssl: bool
+  tracked:
+    - name: str
+      mac: match(^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$)
