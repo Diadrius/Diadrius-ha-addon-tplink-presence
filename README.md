@@ -24,7 +24,7 @@ supported models are those it supports. Tested: Archer BE550 (see the table belo
 
 | Model | Tested |
 | --- | --- |
-| Archer BE550 | not yet |
+| Archer BE550 | yes (client type `TplinkRouterSG`) |
 
 ## Install
 
