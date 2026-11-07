@@ -1,5 +1,5 @@
 name: TP-Link Presence
-version: "0.1.0"
+version: "0.1.1"
 slug: tplink_presence
 description: Home/away presence for chosen devices, read from a TP-Link router's client list
 url: https://github.com/Diadrius/Diadrius-ha-addon-tplink-presence
@@ -17,6 +17,7 @@ options:
   poll_interval_seconds: 300
   timeout_seconds: 20
   verify_ssl: false
+  debug_clients: false
   tracked: []
 schema:
   router_url: str
@@ -25,6 +26,7 @@ schema:
   poll_interval_seconds: int(60,3600)
   timeout_seconds: int(5,60)
   verify_ssl: bool
+  debug_clients: bool
   tracked:
     - name: str
       mac: match(^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$)

@@ -12,6 +12,7 @@ Polls your TP-Link router's client list and publishes presence to Home Assistant
 | `poll_interval_seconds` | Time between polls (60 to 3600). Each poll logs you out of the router's web page |
 | `timeout_seconds` | Per-request timeout towards the router |
 | `verify_ssl` | Check the router's HTTPS certificate (most routers use a self-signed one) |
+| `debug_clients` | Log every client the router reports on each poll, to find a device's MAC. Turn off afterwards: the list contains all your devices |
 | `tracked` | Devices to report: a `name` and the device's Wi-Fi `mac` |
 
 Use the address the phone shows under Wi-Fi settings. Phones that use a private Wi-Fi

@@ -11,7 +11,7 @@ use it; nothing in the repo may depend on one person's setup.
   fake values (`AA:BB:CC:00:11:22`, `10.0.0.5`).
 - **Stay generic.** No references to any private repo, house, or heating logic. Behavior
   is configured through add-on options, not hard-coded.
-- **Never log the password or the full client list.** Log error types, timings and
+- **Never log the password. Log the full client list only when the user turns on `debug_clients`.** Log error types, timings and
   response shape only. Scrub secrets from error text.
 - **Fail safe.** Any failure to read the router publishes `unknown`, never `not_home`.
 - Keep the router load low: one login, one client-list request, then logout.

@@ -156,6 +156,8 @@ class Presence:
             return
         duration = round((time.monotonic() - started) * 1000)
         by_mac = {c["mac"]: c for c in clients}
+        if self.settings.get("debug_clients"):
+            log("clients", level="debug", clients=clients)
         self.failures = 0
         self.last_success = now()
         states = {}
