@@ -22,7 +22,7 @@ Find a device's MAC and hostname by turning on `debug_clients` for one poll. A p
 ## Entities
 
 - `device_tracker.tplink_<name>`: `home`, `not_home`, or `unknown` when the router
-  could not be read. Attributes: IP, hostname and connection type.
+  could not be read. Attributes: IP, hostname and connection type, plus signal strength (dBm), link rates and band when the router reports them.
 - `sensor.tplink_presence_status`: `ok`, `unreachable`, `login_failed` or
   `unexpected_response`. Attributes: `last_success`, `last_attempt`, `duration_ms`,
   `consecutive_failures`, `client_class`, `error`.

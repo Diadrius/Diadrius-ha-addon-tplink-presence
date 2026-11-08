@@ -43,6 +43,21 @@ def normalize_mac(mac):
     return re.sub(r"[^0-9a-f]", "", str(mac).lower())
 
 
+def number(value):
+    """A radio reading as a number, or None when the router did not report one."""
+    try:
+        return None if value is None or isinstance(value, bool) else float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def band(value):
+    if value is None:
+        return None
+    text = str(getattr(value, "value", value)).strip()
+    return text or None
+
+
 def slug(name):
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_") or "device"
 
@@ -101,6 +116,10 @@ class RouterReader:
                     "hostname": d.hostname,
                     "connection": getattr(d.type, "value", str(d.type)),
                     "active": bool(d.active),
+                    "signal": number(getattr(d, "signal", None)),
+                    "tx_rate": number(getattr(d, "tx_rate", None)),
+                    "rx_rate": number(getattr(d, "rx_rate", None)),
+                    "band": band(getattr(d, "frequency", None)),
                 }
                 for d in status.devices
             ]
@@ -175,6 +194,8 @@ class Presence:
             attributes = {"source_type": "router"}
             if client:
                 attributes.update(mac=client["mac"], ip=client["ip"], hostname=client["hostname"], connection=client["connection"], matched_by=matched)
+                radio = {k: client.get(k) for k in ("signal", "tx_rate", "rx_rate", "band")}
+                attributes.update({k: v for k, v in radio.items() if v is not None})
                 if self.matched_by.get(name) != matched and matched == "hostname":
                     log("matched_by_hostname", level="warning", device=name, mac_seen=client["mac"], hint="the tracked MAC was not found; update it")
                 self.matched_by[name] = matched

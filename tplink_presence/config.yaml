@@ -1,5 +1,5 @@
 name: TP-Link Presence
-version: "0.1.3"
+version: "0.1.4"
 slug: tplink_presence
 description: Home/away presence for chosen devices, read from a TP-Link router's client list
 url: https://github.com/Diadrius/Diadrius-ha-addon-tplink-presence

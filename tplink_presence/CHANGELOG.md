@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- The tracker also publishes the device's `signal` (dBm), `tx_rate`, `rx_rate` and `band` as attributes when the router reports them. No extra router requests; a missing reading is simply left out.
+
 ## 0.1.3
 
 - Optional faster polling during an initial device absence, returning to the normal interval after the confirmation window or when the device returns. Failures retain the existing backoff.

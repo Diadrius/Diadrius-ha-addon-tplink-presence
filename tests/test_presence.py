@@ -41,6 +41,19 @@ def phone(active=True):
 
 
 class PresenceTest(unittest.TestCase):
+    def test_publishes_radio_readings_when_reported(self):
+        _, ha = self.run_poll([{**phone(), "signal": -48.0, "tx_rate": 576000.0, "rx_rate": None, "band": "6G"}])
+        attributes = ha.states["device_tracker.tplink_test_phone"][1]
+        self.assertEqual((attributes["signal"], attributes["tx_rate"], attributes["band"]), (-48.0, 576000.0, "6G"))
+        self.assertNotIn("rx_rate", attributes)
+
+    def test_radio_helpers_tolerate_missing_values(self):
+        self.assertIsNone(presence.number(None))
+        self.assertIsNone(presence.number("n/a"))
+        self.assertEqual(presence.number("-50"), -50.0)
+        self.assertIsNone(presence.band(None))
+        self.assertEqual(presence.band(" 5G "), "5G")
+
     def run_poll(self, result):
         ha = FakeHA()
         p = presence.Presence(SETTINGS, FakeReader(result), ha)
