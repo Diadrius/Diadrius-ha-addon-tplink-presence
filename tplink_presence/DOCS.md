@@ -10,6 +10,8 @@ Polls your TP-Link router's client list and publishes presence to Home Assistant
 | `username` | Usually `admin`. Many models only ask for a password, and the username is then unused |
 | `password` | The router's local admin password |
 | `poll_interval_seconds` | Time between polls (60 to 3600). Each poll logs you out of the router's web page |
+| `confirmation_poll_interval_seconds` | Poll interval during an initial absence (minimum 60 seconds; default 60) |
+| `absence_confirmation_seconds` | Initial absence window for faster polling; 0 disables it (default). Each missing device has its own window; finding it again resets the window |
 | `timeout_seconds` | Per-request timeout towards the router |
 | `verify_ssl` | Check the router's HTTPS certificate (most routers use a self-signed one) |
 | `debug_clients` | Log every client the router reports on each poll, to find a device's MAC. Turn off afterwards: the list contains all your devices |

@@ -134,8 +134,10 @@ class HomeAssistant:
 
 
 class Presence:
-    def __init__(self, settings, reader, ha):
+    def __init__(self, settings, reader, ha, clock=time.monotonic):
         self.settings, self.reader, self.ha = settings, reader, ha
+        self.clock = clock
+        self.missing_since = {}
         # (name, mac, hostname): a device matches on its MAC, else on its hostname
         self.tracked = [(t["name"], normalize_mac(t.get("mac") or ""), (t.get("hostname") or "").lower()) for t in settings["tracked"]]
         self.matched_by = {}
@@ -177,7 +179,12 @@ class Presence:
                     log("matched_by_hostname", level="warning", device=name, mac_seen=client["mac"], hint="the tracked MAC was not found; update it")
                 self.matched_by[name] = matched
             self._publish_tracker(name, states[name], attributes)
-        self._publish_health(OK, duration, None, clients_total=len(clients))
+        for name, state in states.items():
+            if state == "not_home":
+                self.missing_since.setdefault(name, self.clock())
+            else:
+                self.missing_since.pop(name, None)
+        self._publish_health(OK, duration, None, clients_total=len(clients), next_poll_seconds=self.delay())
         self.polls += 1
         changed = states != self.last_states
         if changed or self.polls % HEARTBEAT_POLLS == 1:
@@ -203,6 +210,9 @@ class Presence:
     def delay(self):
         interval = self.settings["poll_interval_seconds"]
         if not self.failures:
+            window = self.settings.get("absence_confirmation_seconds", 0)
+            if any(self.clock() - since < window for since in self.missing_since.values()):
+                return min(interval, max(60, self.settings.get("confirmation_poll_interval_seconds", 60)))
             return interval
         return min(interval * 2 ** min(self.failures, 5), MAX_BACKOFF)  # gentle on a router that may lock out bad logins
 

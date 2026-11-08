@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Optional faster polling during an initial device absence, returning to the normal interval after the confirmation window or when the device returns. Failures retain the existing backoff.
+
 ## 0.1.2
 
 - Tracked devices can also be matched by `hostname`, as a fallback when the MAC is not found (e.g. a rotated private address).

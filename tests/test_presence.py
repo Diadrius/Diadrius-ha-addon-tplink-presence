@@ -70,6 +70,36 @@ class PresenceTest(unittest.TestCase):
         p.poll()
         self.assertEqual(p.delay(), 300)
 
+    def test_confirmation_polling_window_and_return(self):
+        clock = [0]
+        settings = {**SETTINGS, "poll_interval_seconds": 120,
+                    "absence_confirmation_seconds": 360,
+                    "confirmation_poll_interval_seconds": 60}
+        reader = FakeReader([phone()])
+        p = presence.Presence(settings, reader, FakeHA(), clock=lambda: clock[0])
+        p.poll()
+        self.assertEqual(p.delay(), 120)
+        reader.result = []
+        p.poll()
+        self.assertEqual(p.delay(), 60)
+        clock[0] = 359
+        p.poll()
+        self.assertEqual(p.delay(), 60)
+        clock[0] = 360
+        p.poll()
+        self.assertEqual(p.delay(), 120)
+        reader.result = [phone()]
+        p.poll()
+        reader.result = []
+        p.poll()
+        self.assertEqual(p.delay(), 60)
+        reader.result = presence.PollError(presence.UNREACHABLE, "boom")
+        p.poll()
+        self.assertEqual(p.delay(), 240)
+        reader.result = [phone()]
+        p.poll()
+        self.assertEqual(p.delay(), 120)
+
     def test_classify(self):
         self.assertEqual(presence.classify(ConnectionError(), "login"), presence.UNREACHABLE)
         self.assertEqual(presence.classify(Exception("x"), "login"), presence.LOGIN_FAILED)
